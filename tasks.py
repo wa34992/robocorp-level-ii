@@ -6,6 +6,7 @@ from RPA.PDF import PDF
 from RPA.Browser.Selenium import Selenium
 from RPA import FileSystem
 from RPA.Archive import Archive
+from selenium import webdriver
 
 
 http = HTTP()
@@ -13,6 +14,7 @@ table = Tables.Tables()
 pdf = PDF()
 rpa_browser = Selenium()
 archive = Archive()
+file_sys = FileSystem.FileSystem()
 
 @task
 def order_robots_from_RobotSpareBin():
@@ -35,10 +37,11 @@ def create_directories():
         FileSystem.FileSystem().remove_directory('output', True)
     FileSystem.Path('output/screenshots').mkdir(parents=True, exist_ok=True)
     FileSystem.Path('output/receipts').mkdir(parents=True, exist_ok=True)
+    file_sys.create_file("output/output.robolog")
     
 
 def open_robot_order_website():
-    rpa_browser.open_browser("https://robotsparebinindustries.com/#/robot-order")
+    rpa_browser.open_available_browser("https://robotsparebinindustries.com/#/robot-order")
 
 def download_order_file():
     http.download("https://robotsparebinindustries.com/orders.csv", "output/orders.csv", True, False, True)
@@ -66,10 +69,13 @@ def fill_the_form(order):
 
 def close_annoying_modal():
     try:
-        rpa_browser.wait_until_element_is_visible("//button[contains(text(), 'OK')]", 20)
-        rpa_browser.click_element("//button[contains(text(), 'OK')]")
+        rpa_browser.wait_until_element_is_visible('//*[@id="root"]/div/div[2]/div/div/div/div/div/button[1]', 20)
+        rpa_browser.click_element('//*[@id="root"]/div/div[2]/div/div/div/div/div/button[1]')
     except Exception as e:
-        rpa_browser.click_element("//button[@id='order-another']")
+        try:
+            rpa_browser.click_element("//button[@id='order-another']")
+        except Exception as e:
+            pass
         close_annoying_modal()
 
 def store_receipt_as_pdf(order_number):
